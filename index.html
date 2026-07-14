@@ -473,7 +473,7 @@ function embedOf(it){
   if (it.platform === "youtube" && it.id)
     return `https://www.youtube-nocookie.com/embed/${it.id}?autoplay=1&start=${t}&rel=0`;
   if (it.platform === "bilibili" && it.id)
-    return `https://player.bilibili.com/player.html?bvid=${it.id}&autoplay=1&t=${t}&high_quality=1`;
+    return `https://player.bilibili.com/player.html?bvid=${it.id}&page=${it.page || 1}&autoplay=1&t=${t}&high_quality=1`;
   return null;
 }
 function hrefOf(it){
