@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SANA × TZUYU — 时间线档案</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@400;600;800&family=Space+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+
+<script>
+/* ============================================================
+   ①  数据区 —— 你只需要改这里
+   ------------------------------------------------------------
+   一条 = 一格底片。顺序随便写,页面会自己按日期排。
+
+   date      必填  "2024-03-15"
+   title     必填  你给这个瞬间起的名字
+   kind      必填  团综 / 演唱会 / 公开活动 / 打歌舞台 / 直播 / 图文
+   place     选填  场合、节目名
+   note      选填  你的描述,1~2 句
+
+   ---- 视频条目 ----
+   platform  "youtube" → id 填 v= 后面那串
+             "bilibili" → id 填 BV 号
+             "link"     → id 填完整网址(X / IG / 微博 等)
+   start     选填  从第几秒开始播,例如 132
+   cover     选填  封面图。YouTube 不填会自动取官方封面;
+                   B站和 link 建议填(见下面"图片怎么放")
+
+   ---- 图文条目 ----
+   platform  "photo"
+   photos    图片地址数组,可以放多张,点开能左右翻页
+             例:photos: ["images/2024-0315-1.jpg", "images/2024-0315-2.jpg"]
+   ============================================================ */
+
+const TIMELINE = [
+  {
+    date: "2015-10-20",
+    title: "【示例·请替换】出道舞台上的第一次对视",
+    kind: "打歌舞台",
+    place: "示例:某某音乐节目",
+    note: "把你想说的话写在这里。删掉这几条示例,换成真的内容。",
+    platform: "youtube",
+    id: "",              // ← 填 YouTube 视频 ID
+    start: 0
+  },
+  {
+    date: "2018-04-02",
+    title: "【示例·请替换】团综里的贴贴名场面",
+    kind: "团综",
+    place: "示例:TWICE TV 第 X 集",
+    note: "start 字段可以直接跳到高光时刻,不用观众自己拖进度条。",
+    platform: "bilibili",
+    id: "",              // ← 填 BV 号,如 BV1xx411c7mD
+    start: 0,
+    cover: ""            // ← 封面图路径,如 "images/cover-01.jpg"
+  },
+  {
+    date: "2024-06-08",
+    title: "【示例·请替换】机场同框的这组图",
+    kind: "图文",
+    place: "示例:某次出发前",
+    note: "图文条目:photos 里放几张就是几张,点开能左右翻。",
+    platform: "photo",
+    photos: [
+      // "images/2024-0608-1.jpg",
+      // "images/2024-0608-2.jpg",
+      // "images/2024-0608-3.jpg"
+    ]
+  }
+];
+
+/* 站点文案 */
+const SITE = {
+  name: "SANA × TZUYU",
+  sub: "私人整理的时间线档案 · 粉丝视角",
+  intro: "从出道至今,把散落在团综、演唱会和公开活动里的瞬间按时间排好。所有视频均为原平台嵌入播放。"
+};
+</script>
+
+<style>
+/* ============================================================
+   ②  样式区 —— 想换配色改下面的变量就行
+   ============================================================ */
+
+/* ---- 夜:深靛蓝场馆 ---- */
+:root{
+  --paper:#12103A;
+  --paper-2:#2C2670;
+  --ink:#EDE9FF;
+  --ink-60:#9E97D6;
+  --glow:#A855F7;         /* 紫 */
+  --glow-2:#4C6FFF;       /* 蓝 */
+  --rule:#2E2A6B;
+  --cell-bg:#1A1650;
+  --cell-line:#3A3480;
+  --halo:0 0 40px rgba(124,92,255,.45);
+
+  --beam:linear-gradient(180deg,var(--glow-2),var(--glow));
+  --beam-h:linear-gradient(90deg,var(--glow-2),var(--glow));
+
+  --track-w:64px;
+  --shell:1120px;
+}
+
+/* ---- 昼:浅紫纸 + 深靛墨 ---- */
+[data-theme="day"]{
+  --paper:#F1EDFF;
+  --paper-2:#D9D0F7;
+  --ink:#191152;
+  --ink-60:#6A61A6;
+  --glow:#7C3AED;
+  --glow-2:#2E5BFF;
+  --rule:#D6CDF2;
+  --cell-bg:#DED6F8;
+  --cell-line:#C6BAEC;
+  --halo:0 0 28px rgba(124,92,255,.28);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--paper);color:var(--ink);
+  font-family:"Noto Sans SC",system-ui,sans-serif;
+  font-size:16px;line-height:1.7;-webkit-font-smoothing:antialiased;
+}
+img{display:block;max-width:100%}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+a{color:inherit}
+.mono{font-family:"Space Mono",ui-monospace,monospace}
+.shell{max-width:var(--shell);margin:0 auto;padding:0 24px}
+
+/* ---------- 页眉 ---------- */
+.masthead{padding:64px 0 40px;border-bottom:1px solid var(--rule);position:relative}
+.themeswitch{
+  position:absolute;top:20px;right:24px;z-index:5;
+  display:flex;gap:2px;padding:3px;border:1px solid var(--rule);border-radius:999px;
+}
+.themeswitch button{
+  font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.14em;
+  padding:5px 12px;border-radius:999px;color:var(--ink-60);transition:.15s;
+}
+.themeswitch button[aria-pressed="true"]{background:var(--beam-h);color:#fff}
+.themeswitch button:focus-visible{outline:2px solid var(--glow);outline-offset:2px}
+
+.eyebrow{
+  font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--glow);margin-bottom:18px;
+}
+.wordmark{
+  font-family:"Big Shoulders Display",sans-serif;font-weight:800;
+  font-size:clamp(56px,12vw,148px);line-height:.86;text-transform:uppercase;
+}
+.wordmark .x{
+  font-weight:400;background:var(--beam-h);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.masthead .sub{
+  font-family:"Space Mono",monospace;font-size:12px;letter-spacing:.12em;
+  color:var(--ink-60);margin-top:14px;
+}
+.masthead .intro{max-width:46ch;margin-top:22px;color:var(--ink-60);font-size:15px}
+
+/* ---------- hero 胶片条 ---------- */
+.stripwrap{margin-top:44px}
+.striplabel{
+  font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--ink-60);margin-bottom:8px;
+}
+.strip{
+  display:flex;gap:4px;overflow-x:auto;padding:8px;
+  background:var(--paper-2);border:1px solid var(--rule);border-radius:2px;
+}
+.strip::-webkit-scrollbar{height:6px}
+.strip::-webkit-scrollbar-thumb{background:var(--glow)}
+.cell{
+  flex:0 0 88px;height:56px;position:relative;overflow:hidden;
+  background:var(--cell-bg);border:1px solid var(--cell-line);
+}
+.cell img{width:100%;height:100%;object-fit:cover;opacity:.75;transition:opacity .2s}
+.cell:hover img,.cell:focus-visible img{opacity:1}
+.cell:focus-visible{outline:2px solid var(--glow);outline-offset:1px}
+.cell .yr{
+  position:absolute;left:0;right:0;bottom:0;
+  font-family:"Space Mono",monospace;font-size:9px;color:#fff;
+  background:rgba(0,0,0,.55);padding:1px 3px;letter-spacing:.06em;
+}
+
+/* ---------- 控制条 ---------- */
+.controls{
+  position:sticky;top:0;z-index:20;background:var(--paper);
+  border-bottom:1px solid var(--rule);padding:12px 0;
+}
+.controls .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.chip{
+  font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.08em;
+  padding:6px 12px;border:1px solid var(--rule);border-radius:999px;
+  color:var(--ink-60);transition:.15s;
+}
+.chip:hover{border-color:var(--ink);color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--beam-h);border-color:transparent;color:#fff}
+.chip:focus-visible{outline:2px solid var(--glow);outline-offset:2px}
+
+.sortbtn{
+  margin-left:auto;display:flex;align-items:center;gap:8px;
+  font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.08em;
+  padding:6px 14px;border:1px solid var(--rule);border-radius:999px;color:var(--ink);
+  transition:.15s;
+}
+.sortbtn:hover{border-color:var(--glow)}
+.sortbtn:focus-visible{outline:2px solid var(--glow);outline-offset:2px}
+.sortbtn .arrow{
+  color:var(--glow);font-size:13px;display:inline-block;transition:transform .25s;
+}
+.sortbtn[data-dir="asc"] .arrow{transform:rotate(180deg)}
+.count{font-family:"Space Mono",monospace;font-size:11px;color:var(--ink-60)}
+
+/* ---------- 时间线 ---------- */
+.reel{position:relative;padding:56px 0 96px}
+.reel::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:var(--track-w);
+  background:
+    repeating-linear-gradient(to bottom, transparent 0 14px, var(--paper) 14px 30px),
+    var(--beam);
+  box-shadow:var(--halo);
+}
+.reel-inner{margin-left:calc(var(--track-w) + 32px);padding-right:24px}
+
+.yearmark{
+  font-family:"Big Shoulders Display",sans-serif;font-weight:800;
+  font-size:clamp(40px,7vw,80px);line-height:1;
+  color:var(--paper-2);margin:56px 0 24px;position:relative;
+}
+.yearmark::after{
+  content:"";position:absolute;left:0;right:0;bottom:-12px;height:1px;background:var(--rule);
+}
+.yearmark:first-child{margin-top:0}
+
+/* ---------- 单格底片 ---------- */
+.frame{
+  display:grid;grid-template-columns:300px 1fr;gap:28px;
+  padding:26px 0;border-bottom:1px solid var(--rule);
+  opacity:0;transform:translateY(14px);
+  transition:opacity .5s ease,transform .5s ease;
+}
+.frame.in{opacity:1;transform:none}
+
+.shot{
+  position:relative;aspect-ratio:16/9;background:var(--cell-bg);
+  overflow:hidden;border:1px solid var(--cell-line);width:100%;
+}
+.shot img{width:100%;height:100%;object-fit:cover}
+.shot .noimg{
+  width:100%;height:100%;display:grid;place-items:center;
+  font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.16em;
+  color:var(--ink-60);text-align:center;padding:12px;opacity:.7;
+}
+.shot::before,.shot::after{
+  content:"";position:absolute;width:14px;height:14px;
+  border:2px solid var(--glow);opacity:0;transition:opacity .2s;pointer-events:none;
+}
+.shot::before{top:8px;left:8px;border-right:0;border-bottom:0}
+.shot::after{bottom:8px;right:8px;border-left:0;border-top:0}
+.frame:hover .shot::before,.frame:hover .shot::after{opacity:1}
+.shot:focus-visible{outline:3px solid var(--glow);outline-offset:2px}
+.shot iframe{width:100%;height:100%;border:0}
+
+.play{position:absolute;inset:0;display:grid;place-items:center;
+  background:linear-gradient(to top,rgba(0,0,0,.45),rgba(0,0,0,0) 60%)}
+.play span{
+  font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.14em;
+  background:var(--beam-h);color:#fff;padding:6px 14px;
+  transform:translateY(4px);transition:transform .2s;
+}
+.frame:hover .play span{transform:none}
+
+.badge{
+  position:absolute;top:8px;right:8px;
+  font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.1em;
+  background:rgba(0,0,0,.6);color:#fff;padding:2px 7px;border-radius:2px;
+}
+
+.meta .stamp{
+  font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.12em;
+  color:var(--glow);display:flex;gap:12px;align-items:center;flex-wrap:wrap;
+}
+.meta .stamp .kind{color:var(--ink);border:1px solid var(--rule);padding:1px 8px;border-radius:999px}
+.meta h3{
+  font-family:"Big Shoulders Display",sans-serif;font-weight:600;
+  font-size:30px;line-height:1.15;margin:10px 0 6px;
+}
+.meta .place{font-size:13px;color:var(--ink-60);font-weight:500}
+.meta .note{margin-top:12px;font-size:15px;color:var(--ink-60);max-width:52ch}
+.meta .src{
+  display:inline-block;margin-top:16px;font-family:"Space Mono",monospace;
+  font-size:11px;letter-spacing:.1em;border-bottom:1px solid var(--glow);
+  padding-bottom:2px;text-decoration:none;
+}
+
+/* ---------- 图片灯箱 ---------- */
+.lb{
+  position:fixed;inset:0;z-index:100;background:rgba(8,6,30,.94);
+  display:grid;place-items:center;padding:32px;
+}
+.lb[hidden]{display:none}
+.lb img{max-width:100%;max-height:78vh;object-fit:contain}
+.lb .cap{
+  font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.1em;
+  color:#C9C2F0;text-align:center;margin-top:14px;
+}
+.lb .nav{
+  position:absolute;top:50%;transform:translateY(-50%);
+  font-size:34px;color:#fff;padding:12px 18px;opacity:.65;transition:.15s;
+}
+.lb .nav:hover{opacity:1}
+.lb .prev{left:8px}
+.lb .next{right:8px}
+.lb .close{
+  position:absolute;top:16px;right:20px;font-size:22px;color:#fff;opacity:.7;padding:6px 10px;
+}
+.lb .close:hover{opacity:1}
+.lb button:focus-visible{outline:2px solid var(--glow);outline-offset:2px}
+
+/* ---------- 其他 ---------- */
+.empty-state{
+  padding:80px 0;text-align:center;color:var(--ink-60);
+  font-family:"Space Mono",monospace;font-size:13px;letter-spacing:.08em;
+}
+footer{
+  border-top:1px solid var(--rule);padding:40px 0 64px;
+  font-family:"Space Mono",monospace;font-size:11px;
+  color:var(--ink-60);letter-spacing:.08em;line-height:2;
+}
+
+@media (max-width:860px){
+  :root{--track-w:28px}
+  .reel-inner{margin-left:calc(var(--track-w) + 18px);padding-right:0}
+  .frame{grid-template-columns:1fr;gap:16px}
+  .meta h3{font-size:24px}
+  .themeswitch{position:static;margin-bottom:20px;width:max-content}
+  .sortbtn{margin-left:0}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none !important;animation:none !important}
+  html{scroll-behavior:auto}
+  .frame{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="shell">
+    <div class="themeswitch" role="group" aria-label="切换深浅主题">
+      <button id="t-night" aria-pressed="true">夜</button>
+      <button id="t-day" aria-pressed="false">昼</button>
+    </div>
+    <p class="eyebrow">Fan archive · 非官方</p>
+    <h1 class="wordmark" id="wordmark"></h1>
+    <p class="sub mono" id="sub"></p>
+    <p class="intro" id="intro"></p>
+
+    <div class="stripwrap">
+      <p class="striplabel">全部收录 · 点一格跳到对应条目</p>
+      <div class="strip" id="strip"></div>
+    </div>
+  </div>
+</header>
+
+<nav class="controls" aria-label="筛选与排序">
+  <div class="shell row" id="controls"></div>
+</nav>
+
+<main class="reel">
+  <div class="shell">
+    <div class="reel-inner" id="reel"></div>
+  </div>
+</main>
+
+<footer>
+  <div class="shell">
+    <p>本站为粉丝自制整理,与 JYP Entertainment 及 TWICE 官方无关。</p>
+    <p>视频通过原平台嵌入播放,版权归原作者所有。如需下架请联系。</p>
+  </div>
+</footer>
+
+<div class="lb" id="lb" hidden role="dialog" aria-modal="true" aria-label="图片查看">
+  <button class="close" id="lb-close" aria-label="关闭">✕</button>
+  <button class="nav prev" id="lb-prev" aria-label="上一张">‹</button>
+  <button class="nav next" id="lb-next" aria-label="下一张">›</button>
+  <div>
+    <img id="lb-img" alt="">
+    <p class="cap mono" id="lb-cap"></p>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   ③  逻辑区 —— 一般不用改
+   ============================================================ */
+const $ = s => document.querySelector(s);
+
+/* ---- 主题 ---- */
+function setTheme(t){
+  document.documentElement.setAttribute("data-theme", t);
+  $("#t-night").setAttribute("aria-pressed", t === "night");
+  $("#t-day").setAttribute("aria-pressed", t === "day");
+}
+setTheme(matchMedia("(prefers-color-scheme: light)").matches ? "day" : "night");
+$("#t-night").onclick = () => setTheme("night");
+$("#t-day").onclick   = () => setTheme("day");
+
+/* ---- 文案 ---- */
+document.title = SITE.name + " — 时间线档案";
+$("#wordmark").innerHTML = SITE.name.replace("×", '<span class="x">×</span>');
+$("#sub").textContent = SITE.sub;
+$("#intro").textContent = SITE.intro;
+
+/* ---- 数据:正序为基准,编号永远不变 ---- */
+const base = [...TIMELINE].sort((a,b) => a.date.localeCompare(b.date));
+base.forEach((it,i) => {
+  it._i = i;
+  it._code = `ST-${it.date.slice(0,4)}-${String(i+1).padStart(3,"0")}`;
+});
+
+let activeKind = "全部";
+let desc = true;            /* ← 默认最新在前 */
+
+const KINDS = ["全部","团综","演唱会","公开活动","打歌舞台","直播","图文"];
+const photosOf = it => (it.photos || []).filter(Boolean);
+
+function coverOf(it){
+  if (it.cover) return it.cover;
+  if (it.platform === "photo") return photosOf(it)[0] || null;
+  if (it.platform === "youtube" && it.id) return `https://i.ytimg.com/vi/${it.id}/hqdefault.jpg`;
+  return null;
+}
+function embedOf(it){
+  const t = it.start || 0;
+  if (it.platform === "youtube" && it.id)
+    return `https://www.youtube-nocookie.com/embed/${it.id}?autoplay=1&start=${t}&rel=0`;
+  if (it.platform === "bilibili" && it.id)
+    return `https://player.bilibili.com/player.html?bvid=${it.id}&autoplay=1&t=${t}&high_quality=1`;
+  return null;
+}
+function hrefOf(it){
+  const t = it.start || 0;
+  if (it.platform === "youtube")  return `https://www.youtube.com/watch?v=${it.id}${t?`&t=${t}s`:""}`;
+  if (it.platform === "bilibili") return `https://www.bilibili.com/video/${it.id}${t?`?t=${t}`:""}`;
+  if (it.platform === "link")     return it.id;
+  return null;
+}
+const fmtDate = d => d.replaceAll("-",".");
+
+/* ---- hero 胶片条(永远按正序,像一卷完整的胶片) ---- */
+const strip = $("#strip");
+base.forEach(it => {
+  const c = document.createElement("a");
+  c.className = "cell"; c.href = "#f"+it._i; c.title = `${fmtDate(it.date)} ${it.title}`;
+  const src = coverOf(it);
+  c.innerHTML = (src ? `<img src="${src}" alt="" loading="lazy">` : "")
+    + `<span class="yr mono">${it.date.slice(2,4)}'</span>`;
+  strip.appendChild(c);
+});
+
+/* ---- 控制条:筛选 + 排序 ---- */
+const controls = $("#controls");
+KINDS.forEach(k => {
+  const n = k === "全部" ? base.length : base.filter(i => i.kind === k).length;
+  if (!n && k !== "全部") return;
+  const b = document.createElement("button");
+  b.className = "chip mono"; b.textContent = `${k} ${n}`;
+  b.setAttribute("aria-pressed", k === "全部");
+  b.onclick = () => {
+    activeKind = k;
+    controls.querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", x === b));
+    render();
+  };
+  controls.appendChild(b);
+});
+
+const sortBtn = document.createElement("button");
+sortBtn.className = "sortbtn";
+controls.appendChild(sortBtn);
+
+const count = document.createElement("span");
+count.className = "count"; controls.appendChild(count);
+
+function paintSort(){
+  sortBtn.dataset.dir = desc ? "desc" : "asc";
+  sortBtn.innerHTML = `<span class="arrow">↓</span> ${desc ? "最新在前" : "最早在前"}`;
+  sortBtn.setAttribute("aria-label", `当前${desc ? "最新在前" : "最早在前"},点击切换`);
+}
+sortBtn.onclick = () => { desc = !desc; paintSort(); render(); };
+paintSort();
+
+/* ---- 渲染 ---- */
+const reel = $("#reel");
+function render(){
+  let list = base.filter(it => activeKind === "全部" || it.kind === activeKind);
+  if (desc) list = [...list].reverse();
+
+  count.textContent = `${list.length} 条记录`;
+  reel.innerHTML = "";
+
+  if (!list.length){
+    reel.innerHTML = `<p class="empty-state">这个分类还没有条目。回到数据区添加一条。</p>`;
+    return;
+  }
+
+  let year = null;
+  list.forEach(it => {
+    const y = it.date.slice(0,4);
+    if (y !== year){
+      year = y;
+      const h = document.createElement("h2");
+      h.className = "yearmark"; h.textContent = y;
+      reel.appendChild(h);
+    }
+
+    const src   = coverOf(it);
+    const pics  = photosOf(it);
+    const isPic = it.platform === "photo";
+    const link  = hrefOf(it);
+
+    const el = document.createElement("article");
+    el.className = "frame"; el.id = "f"+it._i;
+    el.innerHTML = `
+      <button class="shot" aria-label="${isPic ? "查看图片" : "播放"}:${it.title}">
+        ${src ? `<img src="${src}" alt="" loading="lazy">`
+              : `<div class="noimg">NO PREVIEW<br>${isPic ? "填入 photos 后显示" : "填入视频 ID 后显示"}</div>`}
+        ${isPic
+          ? (pics.length > 1 ? `<span class="badge mono">${pics.length} 图</span>` : "")
+          : `<span class="play"><span>▶ 播放${it.start ? " · "+it.start+"s" : ""}</span></span>`}
+      </button>
+      <div class="meta">
+        <p class="stamp mono">
+          <span>${fmtDate(it.date)}</span>
+          <span>${it._code}</span>
+          <span class="kind">${it.kind}</span>
+        </p>
+        <h3>${it.title}</h3>
+        ${it.place ? `<p class="place">${it.place}</p>` : ""}
+        ${it.note  ? `<p class="note">${it.note}</p>` : ""}
+        ${link ? `<a class="src mono" href="${link}" target="_blank" rel="noopener">在原平台打开 ↗</a>` : ""}
+      </div>`;
+
+    const shot = el.querySelector(".shot");
+    shot.addEventListener("click", () => {
+      if (isPic){
+        if (pics.length) openLB(pics, 0, `${fmtDate(it.date)} · ${it.title}`);
+        return;
+      }
+      const url = embedOf(it);
+      if (!url){ if (link) window.open(link, "_blank", "noopener"); return; }
+      const box = document.createElement("div");
+      box.className = "shot";
+      box.innerHTML = `<iframe src="${url}" allow="autoplay; encrypted-media; fullscreen"
+                        allowfullscreen scrolling="no" frameborder="0"></iframe>`;
+      shot.replaceWith(box);
+    });
+
+    reel.appendChild(el);
+  });
+
+  observe();
+}
+
+/* ---- 灯箱 ---- */
+const lb = $("#lb");
+let lbPics = [], lbAt = 0, lbCap = "", lbOpener = null;
+
+function openLB(pics, at, cap){
+  lbPics = pics; lbAt = at; lbCap = cap; lbOpener = document.activeElement;
+  lb.hidden = false;
+  paintLB();
+  $("#lb-close").focus();
+}
+function paintLB(){
+  $("#lb-img").src = lbPics[lbAt];
+  $("#lb-cap").textContent = lbPics.length > 1
+    ? `${lbCap}  ·  ${lbAt + 1} / ${lbPics.length}`
+    : lbCap;
+  const many = lbPics.length > 1;
+  $("#lb-prev").style.display = many ? "" : "none";
+  $("#lb-next").style.display = many ? "" : "none";
+}
+function closeLB(){
+  lb.hidden = true;
+  $("#lb-img").src = "";
+  if (lbOpener) lbOpener.focus();
+}
+const step = d => { lbAt = (lbAt + d + lbPics.length) % lbPics.length; paintLB(); };
+
+$("#lb-close").onclick = closeLB;
+$("#lb-prev").onclick  = () => step(-1);
+$("#lb-next").onclick  = () => step(1);
+lb.addEventListener("click", e => { if (e.target === lb) closeLB(); });
+document.addEventListener("keydown", e => {
+  if (lb.hidden) return;
+  if (e.key === "Escape")     closeLB();
+  if (e.key === "ArrowLeft")  step(-1);
+  if (e.key === "ArrowRight") step(1);
+});
+
+/* ---- 滚动淡入 ---- */
+let io;
+function observe(){
+  if (io) io.disconnect();
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches){
+    reel.querySelectorAll(".frame").forEach(f => f.classList.add("in"));
+    return;
+  }
+  io = new IntersectionObserver(es => {
+    es.forEach(e => { if (e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); }});
+  }, { rootMargin: "0px 0px -8% 0px" });
+  reel.querySelectorAll(".frame").forEach(f => io.observe(f));
+}
+
+render();
+</script>
+</body>
+</html>
